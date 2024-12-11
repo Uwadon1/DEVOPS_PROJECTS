@@ -1,342 +1,52 @@
-## WEB STACK IMPLEMENTATION (LAMP STACK) IN AWS
+# Introduction
 
-### Introduction:
+__The LAMP stack is a cornerstone technology in web development, renowned for its open-source nature, versatility, and robust functionality. This combination of software empowers developers to craft dynamic and feature-rich web applications.__
 
-__The LAMP stack is a popular open-source web development platform that consists of four main components: Linux, Apache, MySQL, and PHP (or sometimes Perl or Python). This documentation outlines the setup, configuration, and usage of the LAMP stack.__
+## Core Components
 
-## Step 0: Prerequisites
+__Linux:__
 
-__1.__ EC2 Instance of t2.micro type and Ubuntu 24.04 LTS (HVM) was lunched in the us-east-1 region using the AWS console.
+The foundation of the LAMP stack, the Linux operating system kernel provides the essential infrastructure for running web servers, databases, and other software. Popular distributions for LAMP stacks include Ubuntu, CentOS, and Debian.
 
-![Lunch Instance](./images/creating-ec2.png)
-![Lunch Instance](./images/ec2-details.png)
+__Apache:__
 
-__2.__ Created SSH key pair named __my-ec2-key__ to access the instance on port 22
+Apache, the web server software, shoulders the responsibility of serving web pages to users. It interprets HTTP requests from client browsers and delivers content like HTML pages, images, and scripts. Additionally, Apache offers features like virtual hosting, secure connections (SSL/TLS), and URL rewriting.
 
-__3.__ The security group was configured with the following inbound rules:
+__MySQL (or MariaDB):__
 
-- Allow traffic on port 80 (HTTP) with source from anywhere on the internet.
-- Allow traffic on port 443 (HTTPS) with source from anywhere on the internet.
-- Allow traffic on port 22 (SSH) with source from any IP address. This is opened by default.
+MySQL, a relational database management system (RDBMS), stores and manages structured data for web applications. It utilizes a client-server architecture, allowing multiple clients to connect and perform operations like data retrieval, manipulation, and deletion. MariaDB, a widely adopted fork of MySQL, offers full compatibility while introducing additional features and performance enhancements.
 
-![Security Rules](./images/security-rule.png)
+__PHP (or Perl/Python):__
 
-__4.__ The default VPC and Subnet was used for the networking configuration.
+PHP, a server-side scripting language, is instrumental in developing dynamic web content. Embedded within HTML code, PHP executes on the web server to generate dynamic content before delivering it to the client's browser. PHP interacts with databases, processes form data, manages files, and executes various tasks crucial for building interactive and feature-packed web applications.
 
-![Default Network](./images/networking.png)
+### Understanding the LAMP Workflow
 
-__5.__ The private ssh key that got downloaded was located, permission was changed for the private key file and then used to connect to the instance by running
-```
-chmod 400 my-ec2-key.pem
-```
-```
-ssh -i "my-ec2-key.pem" ubuntu@184.72.210.143
-```
-Where __username=ubuntu__ and __public ip address=184.72.210.143__
+__1.__ __Client Request:__ A user initiates by entering a URL in their browser or clicking a link, sending a request to the web server (Apache).
 
-![Connect to instance](./images/ssh-access.png)
+__2.__ __Apache Receives Request:__ Apache intercepts the HTTP request from the client and begins processing.
 
+__3.__ __PHP Takes Action:__ If the requested resource is a PHP file, Apache redirects the request to the PHP interpreter, which executes the embedded code.
 
+__4.__ __MySQL Interaction (Optional):__ The PHP code may interact with the MySQL database to retrieve or manipulate data as required.
 
-## Step 1 - Install Apache and Update the Firewall
+__5.__ __Apache Delivers Response:__ Once processing is complete, Apache generates an HTTP response containing the requested resource (web page) and transmits it back to the client's browser.
 
-__1.__ __Update and upgrade list of packages in package manager__
-```
-sudo apt update
-sudo apt upgrade -y
-```
-![Update Packages](./images/update-ec2.png)
-![Upgrade Packages](./images/upgrade-ec2.png)
+__6.__ __Client Receives Response:__ The client's browser receives the response and renders the web page for the user to view.
 
-__2.__ __Run apache2 package installation__
-```
-sudo apt install apache2 -y
-```
-![Instal Apache](./images/install-apache.png)
+## Advantages of the LAMP Stack
 
-__3.__ __Enable and verify that apache is running on as a service on the OS.__
-```
-sudo systemctl enable apache2
-sudo systemctl status apache2
-```
-If it green and running, then apache2 is correctly installed
-![Apache Status](./images/check-status.png)
+- __Open-Source Software:__ All LAMP components are free to use and modify, granting developers the ability to customize them for specific project needs.
 
-__4.__ __The server is running and can be accessed locally in the ubuntu shell by running the command below:__
+- __Flexibility:__ LAMP offers a high degree of flexibility in development. Developers can leverage a vast array of programming languages, frameworks, and tools to construct web applications.
 
-```
-curl http://localhost:80
-OR
-curl http://127.0.0.1:80
-```
-![Local URL](./images/default-page-curl.png)
+- __Scalability:__ LAMP applications can be readily scaled to accommodate increasing user traffic and data volume. This can be achieved through adding servers, optimizing code, or implementing caching mechanisms.
 
-__5.__ __Test with the public IP address if the Apache HTTP server can respond to request from the internet using the url on a browser.__
-```
-http://184.72.210.143:80
-```
-![Apache Default Page](./images/default-page-browser.png)
-This shows that the web server is correctly installed and it is accessible throuhg the firewall.
-
-__6.__ __Another way to retrieve the public ip address other than check the aws console__
-```
-curl -s http://169.254.169.254/latest/meta-data/public-ipv4
-```
-After running the command above, there was an error __401 - Unauthorized__ output.
-![Unauthorized Error-401](./images/unauthorized-curl.png)
+- __Extensive Community Support:__ The LAMP stack boasts a large and active community of developers and users who contribute to its ongoing development, provide technical support, and share valuable knowledge and resources.
 
-In troubleshooting this error, the following navigation was made from the ec2 instance page on the AWS console:
+__Conclusion__
 
-- Actions > Instance Settings > Modify instance metadata options.
-- Then change the __IMDSv2__ from __Required__ to __Optional__.
-
-![imds option](./images/imds-option.png)
-
-The command was run again, this time there was no error with the public IP address displayed.
-
-```
-curl -s http://169.254.169.254/latest/meta-data/public-ipv4
-```
-![Public IP with curl](./images/pub-ip-curl.png)
-
-## Step 2 - Install MySQL
-
-__1.__ __Install a relational database (RDB)__
-
-MySQL was installed in this project. It is a popular relational database management system used within PHP environments.
-```
-sudo apt install mysql-server
-```
-![Install MySQL](./images/install-mysql.png)
-When prompted, install was confirmed by typing y and then Enter.
-
-__2.__ __Enable and verify that mysql is running with the commands below__
-```
-sudo systemctl enable --now mysql
-sudo systemctl status mysql
-```
-![MySQL Status](./images/check-mysql-status.png)
-
-__3.__ __Log in to mysql console__
-```
-sudo mysql
-```
-This connects to the MySQL server as the administrative database user __root__ infered by the use of __sudo__ when running the command.
-
-__4.__ __Set a password for root user using mysql_native_password as default authentication method.__
-
-Here, the user's password was defined as "Admin123$"
-```
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Admin123$';
-```
-![User Password](./images/access-mysql-shell.png)
-Exit the MySQL shell
-```
-exit
-```
-
-__5.__ __Run an Interactive script to secure MySQL__
-
-The security script comes pre-installed with mysql. This script removes some insecure settings and lock down access to the database system.
-```
-sudo mysql_secure_installation
-```
-![](./images/secure-mysql.png)
-
-Regardless of whether the VALIDATION PASSWORD PLUGIN is set up, the server will ask to select and confirm a password for MySQL root user.
-
-__6.__ __After changing root user password, log in to MySQL console.__
-
-A command prompt for password was noticed after running the command below.
-```
-sudo mysql -p
-```
-![](./images/access-mysql-with-password.png)
-Exit MySQL shell
-```
-exit
-```
-
-## Step 3 - Install PHP
-
-__1.__ __Install php__
-Apache is installed to serve the content and MySQL is installed to store and manage data.
-PHP is the component of the set up that processes code to display dynamic content to the end user.
-
-The following were installed:
-- php package
-- php-mysql, a PHP module that allows PHP to communicate with MySQL-based databases.
-- libapache2-mod-php, to enable Apache to handle PHP files.
-```
-sudo apt install php libapache2-mod-php php-mysql
-```
-![Install PHP](./images/install-php.png)
-
-Confirm the PHP version
-```
-php -v
-```
-![Confirm php version](./images/confirm-php-install.png)
-At this point, the LAMP stack is completely installed and fully operational.
-
-To test the set-up with a PHP script, it's best to set up a proper Apache Virtual Host to hold the website files and folders. Virtual host allows to have multiple websites located on a single machine and it won't be noticed by the website users.
-
-## Step 4 - Create a virtual host for the website using Apache
-
-__1.__ __The default directory serving the apache default page is /var/www/html. Create your document directory next to the default one.__
-
-Created the directory for projectlamp using "mkdir" command
-```
-sudo mkdir /var/www/projectlamp
-```
-
-__Assign the directory ownership with $USER environment variable which references the current system user.__
-```
-sudo chown -R $USER:$USER /var/www/projectlamp
-```
-![Projectlamp Root Directory](./images/create-root-directory.png)
-
-__2.__ __Create and open a new configuration file in apache’s “sites-available” directory using vim.__
-```
-sudo vim /etc/apache2/sites-available/projectlamp.conf
-```
-
-Past in the bare-bones configuration below:
-```
-<VirtualHost *:80>
-  ServerName projectlamp
-  ServerAlias www.projectlamp
-  ServerAdmin webmaster@localhost
-  DocumentRoot /var/www/projectlamp
-  ErrorLog ${APACHE_LOG_DIR}/error.log
-  CustomLog ${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>
-```
-![Virtual Host](./images/virtualhost.png)
-
-
-__3.__ __Show the new file in sites-available__
-```
-sudo ls /etc/apache2/sites-available
-```
-```
-Output:
-000-default.conf default-ssl.conf projectlamp.conf
-```
-![Projectlamp config file](./images/ls-sites-available.png)
-
-With the VirtualHost configuration, Apache will serve projectlamp using /var/www/projectlamp as its web root directory.
-
-__4.__ __Enable the new virtual host__
-```
-sudo a2ensite projectlamp
-```
-![Enable virtual host](./images/enable-root-directory.png)
-
-__5.__ __Disable apache’s default website.__
-
-This is because Apache’s default configuration will overwrite the virtual host if not disabled. This is required if a custom domain is not being used.
-```
-sudo a2dissite 000-default
-```
-![Disable Apache default](./images/disable-root-dir.png)
-
-__6.__ __Ensure the configuration does not contain syntax error__
-
-The command below was used:
-```
-sudo apache2ctl configtest
-```
-![Check syntax error](./images/check-config-syntac.png)
-
-__7.__ __Reload apache for changes to take effect.__
-```
-sudo systemctl reload apache2
-```
-![Reload Apache](./images/reload-apache.png)
-
-__8.__ __The new website is now active but the web root /var/www/projectlamp is still empty. Create an index.html file in this location so to test the virtual host work as expected.__
-```
-sudo echo 'Hello LAMP from hostname' $(curl -s http://169.254.169.254/latest/meta-data/public-hostname) 'with public IP' $(curl -s http://169.254.169.254/latest/meta-data/public-ipv4) > /var/www/projectlamp/index.html
-```
-![Root dir content](./images/fill-root-dir.png)
-
-
-__9.__ __Open the website on a browser using the public IP address.__
-```
-http://184.72.210.143:80
-```
-![URL public IP](./images/site-url-ip.png)
-
-__10.__ Open the website with public dns name (port is optional)
-```
-http://<public-DNS-name>:80
-```
-![URL public DNS](./images/site-url-pub-dns.png)
-
-This file can be left in place as a temporary landing page for the application until an index.php file is set up to replace it. Once this is done, the index.html file should be renamed or removed from the document root as it will take precedence over index.php file by default.
-
-## Step 5 - Enable PHP on the website
-
-With the default DirectoryIndex setting on Apache, index.html file will always take precedence over index.php file. This is useful for setting up maintenance page in PHP applications, by creating a temporary index.html file containing an informative message for visitors. The index.html then becomes the landing page for the application. Once maintenance is over, the index.html is renamed or removed from the document root bringing back the regular application page.
-If the behaviour needs to be changed, /etc/apache2/mods-enabled/dir.conf file should be edited and the order in which the index.php file is listed within the DirectoryIndex directive should be changed.
-
-__1.__ __Open the dir.conf file with vim to change the behaviour__
-```
-sudo vim /etc/apache2/mods-enabled/dir.conf
-```
-
-```
-<IfModule mod_dir.c>
-  # Change this:
-  # DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm
-  # To this:
-  DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm
-</IfModule>
-```
-![Change file list order](./images/index-php-config.png)
-
-
-__2.__ __Reload Apache__
-
-Apache is reloaded so the changes takes effect.
-```
-sudo systemctl reload apache2
-```
-![](./images/reload-apache-2.png)
-
-__3.__ __Create a php test script to confirm that Apache is able to handle and process requests for PHP files.__
-
-A new index.php file was created inside the custom web root folder.
-
-```
-vim /var/www/projectlamp/index.php
-```
-
-__Add the text below in the index.php file__
-```
-<?php
-phpinfo();
-```
-![php text](./images/index-php.png)
-
-
-__4.__ __Now refresh the page__
-
-![PHP page](./images/php-page.png)
-
-This page provides information about the server from the perspective of PHP. It is useful for debugging and to ensure the settings are being applied correctly.
-
-After checking the relevant information about the server through this page, It’s best to remove the file created as it contains sensitive information about the PHP environment and the ubuntu server. It can always be recreated if the information is needed later.
-```
-sudo rm /var/www/projectlamp/index.php
-```
-
-
-__Conclusion:__
-
-The LAMP stack provides a robust and flexible platform for developing and deploying web applications. By following the guidelines outlined in this documentation, It was possible to set up, configure, and maintain a LAMP environment effectively, enabling the creation of powerful and scalable web solutions.
-
+The LAMP stack's enduring popularity in web development stems from its flexibility, scalability, and reliability. By harnessing the power of Linux, Apache, MySQL (or MariaDB), and PHP, developers can create high-performance web applications that cater to the demands of modern web users.
 
 
 
@@ -391,3 +101,60 @@ Content Management Systems (CMS): Platforms like WordPress, Drupal, and Joomla r
 E-commerce Websites: Many online stores use the LAMP stack to manage dynamic content, handle payments, and process user data.
 Web Applications: From social networking sites to business applications, the LAMP stack provides the necessary infrastructure to support complex web-based platforms.
 Custom Web Development: Developers can use the LAMP stack for custom web applications that require robust back-end support with PHP and MySQL, such as blogs, forums, or project management tools.
+
+
+
+
+
+
+### INTRODUCTION
+
+
+---
+A “LAMP” stack is a group of open source software that is typically installed together in order to enable a server to host dynamic websites and web apps written in PHP. 
+This term is an acronym which represents the Linux operating system with the Apache web server.
+The site data is stored in a MySQL database, and dynamic content is processed by PHP.
+
+### Linux
+---
+Linux is the foundational layer of the LAMP stack, providing the operating system on which all the other components run. As an open-source, Unix-like operating system, 
+Linux offers a highly customizable and secure platform that powers most of the world's servers. 
+Its compatibility with other open-source software and widespread community support make it the preferred choice for web hosting environments.
+Popular Linux distributions used in LAMP stacks include Ubuntu, CentOS, and Debian.
+
+### Apache
+---
+Apache is the web server software that handles serving web pages to users. 
+It processes HTTP requests from client browsers and delivers content such as HTML pages, images, and scripts. 
+Apache also supports advanced features including virtual hosting, secure connections (SSL/TLS), and URL rewriting.
+Key Features of Apache:
+Modular Design: Apache allows administrators to enable or disable different modules, such as SSL for encryption or mod_rewrite for URL manipulation.
+Virtual Hosting: Apache can host multiple websites on a single server, each with its own domain name and directory.
+SSL/TLS Support: Apache can secure connections between the server and clients using SSL (Secure Sockets Layer) and TLS (Transport Layer Security).
+Cross-Platform: Although it runs best on Linux, Apache is also compatible with other operating systems like Windows and macOS.
+
+### MySQL (or MariaDB)
+---
+MySQL is a relational database management system (RDBMS) used for storing and managing structured data in web applications. 
+Its client-server architecture supports multiple clients performing operations such as data retrieval, manipulation, and deletion. 
+MariaDB, a fork of MySQL, provides additional features and performance enhancements while maintaining compatibility with MySQL.
+
+### PHP (or Perl/Python)
+
+PHP is a server-side scripting language designed to create dynamic web content. 
+Embedded within HTML code, PHP executes on the web server to generate content dynamically before sending it to the client. 
+It interacts with databases, processes forms, and performs various tasks necessary for developing interactive web applications. 
+Alternative scripting languages like Perl and Python can also be used in place of PHP, depending on the specific needs of the application.
+
+---
+
+### Use Cases for LAMP Stack
+---
+Content Management Systems (CMS): Platforms like WordPress, Drupal, and Joomla run on the LAMP stack.
+E-commerce Websites: Many online stores use the LAMP stack to manage dynamic content, handle payments, and process user data.
+Web Applications: From social networking sites to business applications, the LAMP stack provides the necessary infrastructure to support complex web-based platforms.
+Custom Web Development: Developers can use the LAMP stack for custom web applications that require robust back-end support with PHP and MySQL, such as blogs, forums, or project management tools.
+
+
+
+
