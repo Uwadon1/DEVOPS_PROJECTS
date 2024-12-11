@@ -1,4 +1,4 @@
-m## WEB STACK IMPLEMENTATION (LAMP STACK) IN AWS
+## WEB STACK IMPLEMENTATION (LAMP STACK) IN AWS
 
 ### Introduction:
 
@@ -177,9 +177,9 @@ Confirm the PHP version
 php -v
 ```
 ![Confirm php version](./images/confirm-php-install.png)
-At this point, the LAMP stack is completely installed and fully operational.
+At this ponit, the LAMP stack is completely installed and fully operational.
 
-To test the set-up with a PHP script, it's best to set up a proper Apache Virtual Host to hold the website files and folders. Virtual host allows to have multiple websites located on a single machine and it won't be noticed by the website users.
+To tset the set up with a PHP script, it's best to set up a proper Apache Virtual Host to hold the website files and folders. Virtual host allows to have multiple websites located on a single machine and it won't be noticed by the website users.
 
 ## Step 4 - Create a virtual host for the website using Apache
 
@@ -336,3 +336,5 @@ sudo rm /var/www/projectlamp/index.php
 __Conclusion:__
 
 The LAMP stack provides a robust and flexible platform for developing and deploying web applications. By following the guidelines outlined in this documentation, It was possible to set up, configure, and maintain a LAMP environment effectively, enabling the creation of powerful and scalable web solutions.
+
+
