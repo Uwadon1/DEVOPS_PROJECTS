@@ -177,9 +177,9 @@ Confirm the PHP version
 php -v
 ```
 ![Confirm php version](./images/confirm-php-install.png)
-At this ponit, the LAMP stack is completely installed and fully operational.
+At this point, the LAMP stack is completely installed and fully operational.
 
-To tset the set up with a PHP script, it's best to set up a proper Apache Virtual Host to hold the website files and folders. Virtual host allows to have multiple websites located on a single machine and it won't be noticed by the website users.
+To test the set-up with a PHP script, it's best to set up a proper Apache Virtual Host to hold the website files and folders. Virtual host allows to have multiple websites located on a single machine and it won't be noticed by the website users.
 
 ## Step 4 - Create a virtual host for the website using Apache
 
